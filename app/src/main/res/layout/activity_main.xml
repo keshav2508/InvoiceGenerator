@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,39 +10,115 @@
     android:paddingRight="16dp"
     android:paddingTop="16dp"
     android:orientation="vertical">
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:errorEnabled="true">
 
+        <EditText
+            android:id="@+id/invoice_no"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter Invoice Number"
+            android:inputType="textEmailAddress"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:textColor="#000000"
+            android:autofillHints="Enter Invoice Number" />
+    </com.google.android.material.textfield.TextInputLayout>
 
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:errorEnabled="true">
 
-    <EditText
+        <EditText
+            android:id="@+id/buyer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Buyer Name"
+            android:inputType="textEmailAddress"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:textColor="#000000"
+            android:autofillHints="Buyer Name" />
+    </com.google.android.material.textfield.TextInputLayout>
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/buyer"
-        android:hint="Buyer Name"
-        android:layout_marginBottom="10dp"/>
-    <EditText
+        android:orientation="horizontal">
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:errorEnabled="true">
+
+            <EditText
+                android:id="@+id/date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Date"
+                android:inputType="textEmailAddress"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:textColor="#000000"
+                android:autofillHints="Date" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <ImageView
+            android:layout_weight="5"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:onClick="setDate"
+            android:src="@drawable/date_icon"
+            />
+    </LinearLayout>
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/date"
-        android:hint="Date"
-        android:layout_marginBottom="10dp"/>
-    <EditText
+        app:errorEnabled="true">
+
+        <EditText
+            android:id="@+id/Amount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Amount"
+            android:inputType="textEmailAddress"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:textColor="#000000"
+            android:autofillHints="Amount" />
+    </com.google.android.material.textfield.TextInputLayout>
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/Amount"
-        android:hint="Amount"
-        android:layout_marginBottom="10dp"/>
-    <EditText
+        app:errorEnabled="true">
+
+        <EditText
+            android:id="@+id/PDF_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="PDF name"
+            android:inputType="textEmailAddress"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:textColor="#000000"
+            android:autofillHints="PDF name" />
+    </com.google.android.material.textfield.TextInputLayout>
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/f2_til_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/PDF_name"
-        android:hint="PDF Name"
-        android:layout_marginBottom="10dp"/>
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/Remarks"
-        android:hint="Remarks (Optional)"
-        android:layout_marginBottom="10dp"/>
+        app:errorEnabled="true">
+
+        <EditText
+            android:id="@+id/Remarks"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Remarks (Optional)"
+            android:inputType="textEmailAddress"
+            android:textColor="#000000"
+            android:autofillHints="Remarks (Optional)" />
+    </com.google.android.material.textfield.TextInputLayout>
 
 
     <Button
@@ -49,4 +126,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Create PDF"/>
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
 </LinearLayout>

@@ -1,15 +1,24 @@
 package com.example.Invoice;
 
 import android.Manifest;
+import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.content.pm.PackageManager;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.pdf.PdfDocument;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.Layout;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.Log;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -19,11 +28,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
+import java.util.Calendar;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -33,20 +41,43 @@ public class MainActivity extends AppCompatActivity {
     EditText amount;
     EditText pdf_name;
     EditText remarks;
+    EditText InvoiceNo;
+    View view;
+
+
+    private int year, month, day;
+
     private static final int STORAGE_PERMISSION_CODE = 101;
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, STORAGE_PERMISSION_CODE);
+        view = findViewById(R.id.view);
         btnCreate =  findViewById(R.id.create);
         buyer_name = findViewById(R.id.buyer);
         date = findViewById(R.id.date);
         amount = findViewById(R.id.Amount);
         pdf_name = findViewById(R.id.PDF_name);
         remarks = findViewById(R.id.Remarks);
-        btnCreate.setOnClickListener(view -> createPdf());
+        InvoiceNo = findViewById(R.id.invoice_no);
+        btnCreate.setOnClickListener(v -> {
+            final Animation myAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.bounce);
+
+            MyBounceInterpolator interpolator = new MyBounceInterpolator(0.1, 25);
+            myAnim.setInterpolator(interpolator);
+
+            btnCreate.startAnimation(myAnim);
+
+            createPdf();
+        });
+        Calendar calendar = Calendar.getInstance();
+        year = calendar.get(Calendar.YEAR);
+        month = calendar.get(Calendar.MONTH);
+        day = calendar.get(Calendar.DAY_OF_MONTH);
+        showDate(year, month+1, day);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -60,7 +91,9 @@ public class MainActivity extends AppCompatActivity {
         // create a new document
         PdfDocument document = new PdfDocument();
         PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(2480,3508, 1).create();
+
         PdfDocument.Page page = document.startPage(pageInfo);
+
         Canvas canvas = page.getCanvas();
         Paint title = new Paint();
         title.setTextAlign(Paint.Align.CENTER);
@@ -81,7 +114,8 @@ public class MainActivity extends AppCompatActivity {
 
         title.setTypeface(Typeface.DEFAULT);
         canvas.drawText("Invoice No.",page_width/2 + 50,370,title);
-        canvas.drawText("1",page_width/2 + 50,430,title);
+        String I_N= InvoiceNo.getText().toString();
+        canvas.drawText(I_N,page_width/2 + 50,430,title);
         canvas.drawText("Dated",1850,370,title);
         canvas.drawText(date_s,1850,430,title);
 
@@ -121,10 +155,10 @@ public class MainActivity extends AppCompatActivity {
         canvas.drawText("₹ "+amount_s,1900,1300,title);
         canvas.drawText("₹ "+amount_s,1900,1950,title);
 
-        String amount_converted= convert_to_words(amount_s);
+        String amount_converted= convertToWord(Integer.parseInt(amount_s));
 
         canvas.drawText("Indian Rupees "+ amount_converted,150,2210,title);
-        canvas.drawText("Remarks:",150,2760,title);
+        canvas.drawText("Remarks:",150,2400,title);
 
         canvas.drawRect(100,900,page_width-100,1100,rect);
         canvas.drawRect(100,900,300,2000,rect);//s no
@@ -135,7 +169,8 @@ public class MainActivity extends AppCompatActivity {
 
         title.setTypeface(Typeface.DEFAULT);
         canvas.drawText("Amount Chargeable(in words)",150,2150,title);
-        canvas.drawText(remak,150,2820,title);
+        //canvas.drawText(remak,150,2820,title);
+
 
         canvas.drawText("Company's Bank Details",page_width/2,2500,title);
         canvas.drawText("Bank Name : ",page_width/2,2560,title);
@@ -159,6 +194,28 @@ public class MainActivity extends AppCompatActivity {
         canvas.drawRect(100,2000,page_width-100,3000,rect);
 
         canvas.drawRect(page_width/2,2700,page_width-100,3000,rect);
+
+
+
+        TextPaint tp = new TextPaint();
+        tp.setColor(Color.BLACK);
+        tp.setTextSize(50);
+        tp.setAntiAlias(true);
+
+// split line
+        StaticLayout staticLayout = new StaticLayout(remak, tp, ((int)page_width/2)-200, Layout.Alignment.ALIGN_NORMAL, 1, 0, false);
+        //int yPos = (height / 2) - (staticLayout.getHeight() / 2);
+        canvas.translate(150, 2400);
+        staticLayout.draw(canvas);
+        //canvas.restore();
+
+
+
+
+
+
+
+
         document.finishPage(page);
 
         String directory_path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/mypdf/";
@@ -178,6 +235,7 @@ public class MainActivity extends AppCompatActivity {
         // close the document
         document.close();
     }
+
     public void checkPermission(String permission, int requestCode)
     {
 
@@ -200,105 +258,113 @@ public class MainActivity extends AppCompatActivity {
                     .show();
         }
     }
-    static String convert_to_words(String num)
-    {
-        // Get number of digits
-        // in given number
-        String ans = "";
-        int len = num.length();
+    private static final String[] units = {
+            "",
+            " one",
+            " two",
+            " three",
+            " four",
+            " five",
+            " six",
+            " seven",
+            " eight",
+            " nine"
+    };
+    private static final String[] doubles = {
+            " ten",
+            " eleven",
+            " twelve",
+            " thirteen",
+            " fourteen",
+            " fifteen",
+            " sixteen",
+            " seventeen",
+            " eighteen",
+            " nineteen"
+    };
+    private static final String[] tens = {
+            "",
+            "",
+            " twenty",
+            " thirty",
+            " forty",
+            " fifty",
+            " sixty",
+            " seventy",
+            " eighty",
+            " ninety"
+    };
 
-        // Base cases
-        if (len == 0) {
-            ans = "empty string";
-            return ans;
-        }
-        if (len > 4) {
-            ans = "Length more than 4 is not supported";
-            return ans;
-        }
+    private static final String[] hundreds = {
+            "",
+            " thousand",
+            " lakh",
+            " crore",
+            " arab",
+            " kharab"
+    };
 
-        /* The first string is not used, it is to make
-            array indexing simple */
-        String[] single_digits = new String[] {
-                "zero", "one", "two",   "three", "four",
-                "five", "six", "seven", "eight", "nine"
-        };
-
-        /* The first string is not used, it is to make
-            array indexing simple */
-        String[] two_digits = new String[] {
-                "",          "ten",      "eleven",  "twelve",
-                "thirteen",  "fourteen", "fifteen", "sixteen",
-                "seventeen", "eighteen", "nineteen"
-        };
-
-        /* The first two string are not used, they are to
-         * make array indexing simple*/
-        String[] tens_multiple = new String[] {
-                "",      "",      "twenty",  "thirty", "forty",
-                "fifty", "sixty", "seventy", "eighty", "ninety"
-        };
-
-        String[] tens_power
-                = new String[] { "hundred", "thousand" };
-
-
-        /* For single digit number */
-        if (len == 1) {
-            ans= ans + (single_digits[num.charAt(0) - '0']);
-            return ans;
-        }
-
-        /* Iterate while num
-            is not '\0' */
-        int x = 0;
-        while (x < num.length()) {
-
-            /* Code path for first 2 digits */
-            if (len >= 3) {
-                if (num.charAt(x) - '0' != 0){
-                    ans = ans + (single_digits[num.charAt(x) - '0'] + " ") ;
-                    ans = ans + (tens_power[len - 3]) + (" ");
-                    // here len can be 3 or 4
-                }
-                --len;
+    private static String convertToWord(int number) {
+        String num = "";
+        int index = 0;
+        int n;
+        int digits;
+        boolean firstIteration = true;
+        do {
+            if(firstIteration){
+                digits = 1000;
+            }else{
+                digits = 100;
             }
-
-            /* Code path for last 2 digits */
-            else {
-                /* Need to explicitly handle
-                10-19. Sum of the two digits
-                is used as index of "two_digits"
-                array of strings */
-                if (num.charAt(x) - '0' == 1) {
-                    int sum
-                            = num.charAt(x) - '0' + num.charAt(x+1) - '0';
-                    ans = ans + (two_digits[sum]);
-                    return ans;
-                }
-
-                /* Need to explicitely handle 20 */
-                else if (num.charAt(x) - '0' == 2
-                        && num.charAt(x+1) - '0' == 0) {
-                    ans = ans + ("twenty");
-                    return ans;
-                }
-
-                /* Rest of the two digit
-                numbers i.e., 21 to 99 */
-                else {
-                    int i = (num.charAt(x) - '0');
-                    if (i > 0)
-                        ans= ans +(tens_multiple[i])+(" ");
-                    else
-                        ans= ans+("");
-                    ++x;
-                    if (num.charAt(x) - '0' != 0)
-                        ans= ans + (single_digits[num.charAt(x) - '0']);
-                }
+            n = number % digits;
+            if (n != 0){
+                String s = convertThreeOrLessThanThreeDigitNum(n);
+                num = s + hundreds[index] + num;
             }
-            ++x;
+            index++;
+            number = number/digits;
+            firstIteration = false;
+        } while (number > 0);
+        return num;
+    }
+    private static String convertThreeOrLessThanThreeDigitNum(int number) {
+        String word = "";
+        int num = number % 100;
+        // Logic to take word from appropriate array
+        if(num < 10){
+            word = word + units[num];
         }
-        return ans;
+        else if(num < 20){
+            word = word + doubles[num%10];
+        }else{
+            word = tens[num/10] + units[num%10];
+        }
+        word = (number/100 > 0)? units[number/100] + " hundred" + word : word;
+        return word;
+    }
+    @SuppressWarnings("deprecation")
+    public void setDate(View view) {
+        showDialog(999);
+        Toast.makeText(getApplicationContext(), "Set Date",
+                Toast.LENGTH_SHORT)
+                .show();
+    }
+
+    @Override
+    protected Dialog onCreateDialog(int id) {
+        // TODO Auto-generated method stub
+        if (id == 999) {
+            return new DatePickerDialog(this,myDateListener, year, month, day);
+        }
+        return null;
+    }
+
+    private final DatePickerDialog.OnDateSetListener myDateListener = (arg0, arg1, arg2, arg3) -> {
+        showDate(arg1, arg2+1, arg3);
+    };
+
+    private void showDate(int year, int month, int day) {
+        date.setText(new StringBuilder().append(day).append("/")
+                .append(month).append("/").append(year));
     }
 }
